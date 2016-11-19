@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CollectionExamples
 {
@@ -10,13 +10,15 @@ namespace CollectionExamples
     {
         static void Main(string[] args)
         {
+            ToDictionaryExemplo();
+            AllExemplo();
+            RangeExemplo();
             FirstSingleExample();
             AnyAndCount();
             AllExample();
             ElementAtExample();
             LastExample();
         }
-
         private static void LastExample()
         {
             var produtos = new List<Produto>();
@@ -26,10 +28,10 @@ namespace CollectionExamples
                 produtos.Add(new Produto() { Id = i, Nome = $"{i} livro asp.net", Preco = i + 8.99M });
             }
 
-            var ultimoProduto= produtos.Last();
-            var ultimoProdutoComLivro = produtos.Last(a=>a.Nome.Contains("livro"));
-            var ultimoProdutoComLivroQueNaoExiste = produtos.Last(a=>a.Nome.Contains("video"));
-            var ultimoProdutoComLivroQueNaoExisteDefault = produtos.LastOrDefault(a=>a.Nome.Contains("video"));
+            var ultimoProduto = produtos.Last();
+            var ultimoProdutoComLivro = produtos.Last(a => a.Nome.Contains("livro"));
+            var ultimoProdutoComLivroQueNaoExiste = produtos.Last(a => a.Nome.Contains("video"));
+            var ultimoProdutoComLivroQueNaoExisteDefault = produtos.LastOrDefault(a => a.Nome.Contains("video"));
         }
 
         private static void ElementAtExample()
@@ -118,11 +120,76 @@ namespace CollectionExamples
             var produtoUnicoComASPNET = produtos.Single(a => a.Nome.Contains("asp.net"));
             var produtoComVideoASPNET = produtos.SingleOrDefault(a => a.Nome.Contains("video"));
         }
+
+        private static void ToDictionaryExemplo()
+        {
+            var produtos = CarregaProdutos(100000).ToList();
+
+            //agrupar os produtos
+            var dicionarioDeCategorias = produtos.GroupBy(p => p.Categoria)
+                .ToDictionary(g => g.Key, g => g.ToList());
+        }
+
+        private static void AllExemplo()
+        {
+            var produtos = CarregaProdutos(100000).ToList();
+
+            var inicio = DateTime.Now;
+
+            ////15,5136 ms
+            //if (produtos.All(a => a.Ativo))
+            //{
+
+            //}
+
+            //17,9913 ms
+            ////validar de todos os produtos estão ativos
+            //if (produtos.Count() == produtos.Count(a => a.Ativo))
+            //{
+            //    //fazer algo
+            //}
+
+            var fim = DateTime.Now;
+
+            var total = (fim - inicio).TotalMilliseconds;
+
+            Console.WriteLine($"{total} ms");
+            Console.ReadKey();
+        }
+
+        private static void RangeExemplo()
+        {
+            //3690,3322 ms
+            //1855,6756 ms
+            var inicio = DateTime.Now;
+            var produtos = CarregaProdutos(1000000).ToList();
+            var produtosParaAdicionar = CarregaProdutos(1000000);
+
+            var fim = DateTime.Now;
+
+            var total = (fim - inicio).TotalMilliseconds;
+
+            Console.WriteLine($"{total} ms");
+            Console.ReadKey();
+
+            produtos.AddRange(produtosParaAdicionar);
+        }
+
+        private static IEnumerable<Produto> CarregaProdutos(int total)
+        {
+            for (int i = 0; i < total; i++)
+            {
+                var categoria = i % 2 == 0 ? "Livros" : "Cursos";
+                yield return new Produto() { Id = i, Categoria = categoria, Ativo = true, Nome = $"{i} livro asp.net", Preco = 18.99M };
+            }
+        }
     }
     public class Produto
     {
         public int Id { get; set; }
         public string Nome { get; set; }
         public decimal Preco { get; set; }
+        public bool Ativo { get; set; }
+        public string Categoria { get; set; }
     }
 }
